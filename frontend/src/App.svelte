@@ -4,6 +4,11 @@
 
   let todos: TodoItem[] = $state([]);
 
+  //We bind the values of title and description later to the values that the user entered on the form
+  //Currently let them be empty strings 
+  let title =""
+  let description=""
+
   async function fetchTodos() {
     try {
       const response = await fetch("http://localhost:8080/");
@@ -15,6 +20,32 @@
       todos = await response.json();
     } catch (e) {
       console.error("Could not connect to server. Ensure it is running.", e);
+    }
+  }
+
+  async function addTodo(e: Event){
+    e.preventDefault();
+    //Creating new Todo item that be pass to the backend 
+    const newTodo = {title, description}
+
+    try {
+      const response = await fetch("http://localhost:8080/", {
+        method : "POST",
+        body : JSON.stringify(newTodo),
+        headers : {"Content-Type" : "application/json"},
+      });
+
+      if (response.status !== 200){
+        console.error("Error occured when posting new Data, Responce status is not 200 OK")
+        return
+      }
+
+      title = ""
+      description = ""
+
+      fetchTodos();
+    }catch(e){
+      console.error("Could not connect to server. Ensure it is running.", e)
     }
   }
 
@@ -36,9 +67,9 @@
   </div>
 
   <h2 class="todo-list-form-header">Add a Todo</h2>
-  <form class="todo-list-form">
-    <input placeholder="Title" name="title" />
-    <input placeholder="Description" name="description" />
+  <form onsubmit={addTodo} class="todo-list-form">
+    <input placeholder="Title" name="title" bind:value={title}/>
+    <input placeholder="Description" name="description" bind:value={description} />
     <button>Add Todo</button>
   </form>
 </main>
